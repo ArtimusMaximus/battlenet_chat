@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html data-theme="dark" lang="eng">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="title" content="" />
+    <meta name="author" content="AMIV" />
+    <meta name="language" content="english" />
+    <meta name="robots" content="index/follow" />
+    <meta name="revised" content="" />
+    <meta name="rating" content="safe for kids" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta property="og:title" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:description" content="" />
+    <meta property="og:image" content="" />
+    <meta property="og:image:secure_url" content="" />
+    <meta property="og:image:type" content="image/jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="" />
+    <meta property="og:type" content="website" />
+  <link href="/dist/output.css" rel="stylesheet">
+  <!-- <link type="text/css" href="/dist/output.css">
+  <link type="text/css" href="./input.css"> -->
+</head>
+    <body class="h-screen bg-black">
+        <nav class="w-full h-36 grid">
+            <ul class="grid grid-cols-5 text-center">
+                <!-- <li class="col-start-2 col-end-3 flex justify-center items-center">About</li>
+                <li class="col-start-3 col-end-4 flex justify-center items-center">Info</li>
+                <li class="col-start-4 col-end-5 flex justify-center items-center">Contact</li> -->
+            </ul>
+        </nav>
+        <main class="w-screen mx-auto flex items-center justify-center bg-black">
+            <div class="flex flex-col  w-[800px] h-[600px] bg-battlenet800 bg-auto">
+                <div class="relative ml-auto">
+                    <div id="channelName" class="absolute right-10 top-[188px] text-white font-chat-font w-[195px] text-center"></div>
+                </div>
+                <div class="relative ml-auto">
+                    <ul id="channelUserName" class="absolute right-[65px] top-[240px] text-white font-chat-font w-[160px] h-[280px] overflow-y-scroll no-scrollbar"></ul>
+                </div>
+                <!-- <h1 id="hOne" class="text-9xl text-transparent font-bold col-start-2 col-end-3 p-24 bg-clip-text fill-transparent bg-gradient-to-r from-pink-100 via-blue-300 to-pink-700">NEW PROJECT WITH TYPING TEXT</h1> -->
+                <div id="chatOutputContainer" class="overflow-y-scroll break-words bg-black w-[363px] h-[336px] ml-[140px] mt-auto mb-4 no-scrollbar">
+                    <ul id="chatOutput" class="p-2"></ul>
+                </div>
+                <div class="w-full">
+                    <form class="flex flex-row w-full">
+                        <input
+                            id="chatText"
+                            class="
+                                w-[363px] ml-[138px] mb-7 h-8
+                                bg-black text-white
+                                outline-none input border-none focus:outline-none focus:border-none
+                                font-chat-font"
+                                type="text"
+                                autocomplete="off"
+                            />
+                        <button id="bnetSend" type="submit"><span class="underline">S</span>end</button>
+                    </form>
+                </div>
+            </div>
+            </main>
+        <!-- <footer class="w-full h-36 grid border border-primary">
+            <ul class="grid grid-cols-5 text-center">
+                <li class="col-start-2 col-end-3 flex justify-center items-center">About</li>
+                <li class="col-start-3 col-end-4 flex justify-center items-center">Info</li>
+                <li class="col-start-4 col-end-5 flex justify-center items-center">Contact</li>
+            </ul>
+        </footer> -->
+        <div id="openColorRef" class="fixed text-2xl text-white top-10 right-10 z-50">Color Ref</div>
+        <dialog id="colorReference"></dialog>
+        <script src="./index_utils/colorReference.js" type="module"></script>
+        <script src="./index_utils/typewriter.js" type="module"></script>
+        <!-- <script src="./socket.io.js"></script> -->
+        <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+        <script type="module">
+            const socket = io("http://localhost:9999/");
+
+            const gavel = new URL('/channel_icons/gavel.jpg', import.meta.url).href;
+            const sc = new URL('/channel_icons/sc.jpg', import.meta.url).href;
+            const bnet = new URL('/channel_icons/bnet.jpg', import.meta.url).href;
+            const starx = new URL('/channel_icons/starx.jpg', import.meta.url).href;
+            let iconsArr = [gavel, sc, bnet, starx];
+
+            const oneGreen = new URL('/latency_icons/one_green.png', import.meta.url).href;
+            const twoGreen = new URL('/latency_icons/two_green.png', import.meta.url).href;
+            const threeYellow = new URL('/latency_icons/three_yellow.png', import.meta.url).href;
+            const fourYellow = new URL('/latency_icons/four_yellow.png', import.meta.url).href;
+            let latencyArr = [oneGreen, twoGreen, threeYellow, fourYellow];
+
+            let username = prompt("Set your battle.net name:");
+            if (username) {
+                socket.emit('set username', `${username}`);
+            } else if (!username) {
+                socket.emit('set username', `Protoss`);
+            }
+
+            // const username = window.location.href;
+            // const username = "\<Protoss\>"
+            const form = document.querySelector('form');
+            const sendBtn = document.querySelector('button');
+            const messages = document.getElementById('chatOutput');
+            const input = document.getElementById('chatText');
+            const channelName = document.getElementById('channelName');
+
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                if (input.value) {
+                    socket.emit('chat message', { value: input.value });
+                    // socket.emit('chat message', { name: username, value: input.value });
+                    input.value = "";
+                }
+            });
+            socket.on('chat message', (msg) => {
+                //console.log(msg);
+                if (msg.username === username) {
+                    // set css for your name
+                } else if (msg.username !== username) {
+                    // set other persons
+                }
+
+                let userSpan = document.createElement('span');
+                    userSpan.className = "userColor";
+                let msgSpan = document.createElement('span');
+                    msgSpan.className = "msgColor";
+                userSpan.innerText = `\<${msg.name}\>`;
+                msgSpan.innerText = msg.value;
+                let li = document.createElement('li');
+                // li.innerText = msg;
+                // li.innerText = `${msg.name}: ${msg.value}`;
+                li.appendChild(userSpan);
+                li.appendChild(msgSpan);
+                messages.appendChild(li);
+                document.getElementById("chatOutputContainer").scrollTo(0, document.body.scrollHeight)
+            });
+            socket.on('joining', (msg) => {
+                //console.log(msg);
+                channelName.innerText = msg;
+                let li = document.createElement('li');
+                    li.className = "joinChannelColor";
+                    li.innerText = `Joining Channel: ${msg}`;
+                messages.appendChild(li);
+            });
+            socket.on('set username', (name) => {
+                // console.log(name);
+                // let li = document.createElement('li');
+                //     // li.innerText = name.slice(1, name.length-1);
+                //     li.innerText = name;
+                // document.getElementById('channelUserName').appendChild(li);
+            });
+            socket.on('get all users', (arr) => {
+                // console.log(arr);
+                arr.forEach((user) => {
+                    let channelList = document.getElementById('channelUserName');
+                    let li = document.createElement('li');
+
+                        li.className = "channelLI";
+                    let iconImg = document.createElement('img');
+                        iconImg.className = "iconImg"
+                        iconImg.style.paddingRight = "2px";
+                        iconImg.style.height = "14px";
+                        iconImg.style.width = "28px";
+                        // iconImg.height = 6;
+                        // iconImg.width = 32;
+                        iconImg.src = iconsArr[Math.floor(Math.random() * iconsArr.length)];
+                    let latencyImg = document.createElement('img');
+                        latencyImg.src = latencyArr[Math.floor(Math.random() * latencyArr.length)];
+                        latencyImg.className = "latencyImg";
+                        latencyImg.style.height = "14px";
+                        // latencyImg.width = 24;
+                    li.innerText = user;
+                    li.prepend(iconImg);
+                    li.appendChild(latencyImg);
+
+                    if (li.querySelector('img').src.includes('/channel_icons/gavel.jpg')) {
+                        channelList.insertBefore(li, channelList.firstChild)
+                    } else {
+                        channelList.appendChild(li);
+                    }
+
+                });
+
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    /* li {
+        @apply text-yellow-300 font-chat-font;
+    } */
+    .userColor {
+        @apply text-yellow-300 font-chat-font;
+    }
+    .msgColor {
+        @apply text-white font-chat-font px-1;
+    }
+    .joinChannelColor {
+        @apply text-[#81fe3c] font-chat-font;
+    }
+    #bnetSend {
+        @apply text-white hover:text-yellow-300 text-xl bg-[url('/gravel.png')] bg-repeat w-[110px] h-10
+        border-[5px] border-l-black border-r-black border-t-[#d79256] border-b-black ml-[55px] mt-[10px] shadow-lg font-serif;
+    }
+    .channelLI {
+        @apply flex items-center justify-center flex-row py-1 text-xs;
+    }
+    .channelLi > img {
+        @apply flex-shrink-0 ;
+    }
+    .iconImg {
+        @apply my-auto;
+    }
+
+    .latencyImg {
+        @apply ml-auto;
+    }
+
+}
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
