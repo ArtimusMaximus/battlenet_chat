@@ -6,11 +6,23 @@ const cors = require('cors');
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: 'https://battlenet.es9.app',
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
+        credentials: true
+    }
+});
 const PORT = process.env.PORT || 9999;
 
 app.use(express.static(join(__dirname, '../dist')));
-app.use(cors());
+app.use(cors({
+    origin: 'https://battlenet.es9.app',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+    credentials: true
+}));
 let allUsers = [];
 
 app.get('/', (req, res) => {
