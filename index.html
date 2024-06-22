@@ -70,7 +70,7 @@
                 <li class="col-start-4 col-end-5 flex justify-center items-center">Contact</li>
             </ul>
         </footer> -->
-        <!-- <div id="openColorRef" class="fixed text-2xl text-white top-10 right-10 z-50">Color Ref</div> -->
+        <div id="openColorRef" class="fixed text-2xl text-white top-10 right-10 z-50 hidden">Color Ref</div>
         <dialog id="colorReference"></dialog>
         <script src="./index_utils/colorReference.js" type="module"></script>
         <script src="./index_utils/typewriter.js" type="module"></script>
@@ -116,18 +116,18 @@
             });
             socket.on('chat message', (msg) => {
                 //console.log(msg);
-                if (msg.username === username) {
-                    // set css for your name
-                } else if (msg.username !== username) {
-                    // set other persons
-                }
+                // if (msg.username === username) {
+                //     // set css for your name
+                // } else if (msg.username !== username) {
+                //     // set other persons
+                // }
 
                 let userSpan = document.createElement('span');
                     userSpan.className = "userColor";
+                    userSpan.innerText = `\<${msg.name}\>`;
                 let msgSpan = document.createElement('span');
                     msgSpan.className = "msgColor";
-                userSpan.innerText = `\<${msg.name}\>`;
-                msgSpan.innerText = msg.value;
+                    msgSpan.innerText = msg.value;
                 let li = document.createElement('li');
                 // li.innerText = msg;
                 // li.innerText = `${msg.name}: ${msg.value}`;
@@ -136,12 +136,14 @@
                 messages.appendChild(li);
                 document.getElementById("chatOutputContainer").scrollTo(0, document.body.scrollHeight)
             });
-            socket.on('joining', (msg) => {
+            let myCurrentChannel;
+            socket.on('joining channel', (msg) => {
                 //console.log(msg);
                 channelName.innerText = msg;
                 let li = document.createElement('li');
                     li.className = "joinChannelColor";
                     li.innerText = `Joining Channel: ${msg}`;
+                    myCurrentChannel = msg;
                 messages.appendChild(li);
             });
             socket.on('set username', (name) => {
@@ -153,8 +155,11 @@
             });
             socket.on('get all users', (arr) => {
                 // console.log(arr);
+                // const usersInChannel = arr.filter((user) => user.inChannel === myCurrentChannel)
                 arr.forEach((user) => {
-                    let channelList = document.getElementById('channelUserName');
+                    console.log('user.inChannel \t', user.inChannel);
+                    // console.log('user.currentChannel \t', user);
+                    let channelUserList = document.getElementById('channelUserName');
                     let li = document.createElement('li');
 
                         li.className = "channelLI";
@@ -171,16 +176,15 @@
                         latencyImg.className = "latencyImg";
                         latencyImg.style.height = "14px";
                         // latencyImg.width = 24;
-                    li.innerText = user;
+                    li.innerText = user.username;
                     li.prepend(iconImg);
                     li.appendChild(latencyImg);
 
                     if (li.querySelector('img').src.includes('/channel_icons/gavel.jpg')) {
-                        channelList.insertBefore(li, channelList.firstChild)
+                        channelUserList.insertBefore(li, channelUserList.firstChild)
                     } else {
-                        channelList.appendChild(li);
+                        channelUserList.appendChild(li);
                     }
-
                 });
             });
         </script>
