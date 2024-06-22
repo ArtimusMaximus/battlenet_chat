@@ -14,7 +14,7 @@ const io = new Server(server, {
         credentials: true
     }
 });
-const PORT = 9999;
+const PORT = process.env.PORT || 9999;
 
 app.use(express.static(join(__dirname, '../dist')));
 app.use(cors({
@@ -24,45 +24,80 @@ app.use(cors({
     credentials: true
 }));
 let allUsers = [];
-const whoIsWhere = {};
+const usersInRooms = {};
+
 
 app.get('/', (req, res) => {
     res.sendFile(join(__dirname, "../dist/index.html"))
 });
+
 io.on('connection', (socket) => {
     let username = null;
-    console.log("a user connected...");
     let channelName = 'Brood War USA-1';
-    socket.join(channelName);
-    socket.emit('joining channel', channelName);
+    console.log("a user connected...");
+
+
 
     socket.on('set username', (name) => {
         username = name;
-        // allUsers.push(username);
         allUsers.push({ username, inChannel: channelName });
-        console.log(socket.id)
-        socket.emit('get current channel', channelName);
-        socket.emit('set username', name);
-        socket.emit('get all users', allUsers);
+
+        if (!usersInRooms[channelName]) {
+            usersInRooms[channelName] = [];
+        }
+        usersInRooms[channelName].push(username); // add initial self to default starting room
+
+        // socket.emit('get all users', allUsers);
+
+        socket.join(channelName);
+        socket.emit('joining channel message', channelName);
+        io.to(channelName).emit('user list', usersInRooms[channelName]);
     });
 
     socket.on('chat message', (msg) => {
-        // io.emit('chat message', msg);
+        const fullMessage = { name: username, value: msg.value };
+        io.to(channelName).emit('chat message', fullMessage);
         console.log('msg\t', msg);
-        if (msg.value.startsWith("/join")) {
-            const newChannelName = msg.value.split(" ")[1];
-            if (newChannelName) {
-                socket.leave(channelName);
-                channelName = newChannelName;
-                socket.join(channelName);
-                socket.emit('joining channel', channelName);
-            }
-            console.log('channelName\t', channelName);
+        // if (msg.value.startsWith("/join")) {
+        //     const newChannelName = msg.value.split(" ")[1];
+        //     if (newChannelName) {
+        //         socket.leave(channelName);
+        //         channelName = newChannelName;
+        //         // socket.join(channelName);
+        //         // socket.emit('joining channel message', channelName);
+        //     }
+        //     console.log('channelName\t', channelName);
 
-            // io.to(channelName).emit('joinedChannel', `You have joined channel: ${channelName}`);
-        } else {
-            const fullMessage = { name: username, value: msg.value };
-            io.to(channelName).emit('chat message', fullMessage);
+        //     // io.to(channelName).emit('joinedChannel', `You have joined channel: ${channelName}`);
+        // } else {
+        //     // const fullMessage = { name: username, value: msg.value };
+        //     // io.to(channelName).emit('chat message', fullMessage);
+        // }
+    });
+    socket.on('join room', (roomName, userName) => {
+        socket.leave(channelName);
+        socket.join(roomName);
+        channelName = roomName;
+        socket.emit('joining channel message', channelName);
+        if (!usersInRooms[roomName]) {
+            usersInRooms[roomName] = [];
+        }
+        usersInRooms[roomName].push(userName);
+        console.log('usersInRooms[roomName]\t', usersInRooms[roomName]);
+        io.to(roomName).emit('user list', usersInRooms[roomName]);
+    });
+    socket.on('leave room', (roomName, username) => {
+        socket.leave(roomName);
+        if (usersInRooms[roomName]) {
+            usersInRooms[roomName] = usersInRooms[roomName].filter(user => user !== username);
+            io.to(roomName).emit('user list', usersInRooms[roomName]);
+        }
+    });
+    socket.on('disconnect', () => {
+        console.log("a user disconnected...");
+        for (let roomName in usersInRooms) {
+            usersInRooms[roomName] = usersInRooms[roomName].filter(user => user !== socket.id);
+            io.to(roomName).emit('user list', usersInRooms[roomName]);
         }
     });
 
@@ -72,7 +107,7 @@ io.on('connection', (socket) => {
 
 
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, () => {
     console.log(`Server on PORT ${PORT}~~~~`)
 })
 

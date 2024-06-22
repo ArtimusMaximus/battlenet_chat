@@ -62,130 +62,79 @@
                     </form>
                 </div>
             </div>
-            </main>
-        <!-- <footer class="w-full h-36 grid border border-primary">
-            <ul class="grid grid-cols-5 text-center">
-                <li class="col-start-2 col-end-3 flex justify-center items-center">About</li>
-                <li class="col-start-3 col-end-4 flex justify-center items-center">Info</li>
-                <li class="col-start-4 col-end-5 flex justify-center items-center">Contact</li>
-            </ul>
-        </footer> -->
-        <div id="openColorRef" class="fixed text-2xl text-white top-10 right-10 z-50 hidden">Color Ref</div>
-        <dialog id="colorReference"></dialog>
-        <script src="./index_utils/colorReference.js" type="module"></script>
-        <script src="./index_utils/typewriter.js" type="module"></script>
-        <!-- <script src="./socket.io.js"></script> -->
+        </main>
+
+
         <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
         <script type="module">
+            import createAppendMessage from "./index_utils/createAppendMessage.js";
+            import { iconsArr, latencyArr } from './index_utils/icons.js';
+            import setUserNamePrompt from './index_utils/setUserNamePrompt.js';
+            import joiningChannelMessage from './index_utils/joiningChannelMessage.js';
+            import appendUsersToChannel from './index_utils/appendUsersToChannel.js';
+
             const socket = io("http://localhost:9999/");
+            let currentRoom = null;
+            let username = null;
 
-            const gavel = new URL('/channel_icons/gavel.jpg', import.meta.url).href;
-            const sc = new URL('/channel_icons/sc.jpg', import.meta.url).href;
-            const bnet = new URL('/channel_icons/bnet.jpg', import.meta.url).href;
-            const starx = new URL('/channel_icons/starx.jpg', import.meta.url).href;
-            let iconsArr = [gavel, sc, bnet, starx];
-
-            const oneGreen = new URL('/latency_icons/one_green.png', import.meta.url).href;
-            const twoGreen = new URL('/latency_icons/two_green.png', import.meta.url).href;
-            const threeYellow = new URL('/latency_icons/three_yellow.png', import.meta.url).href;
-            const fourYellow = new URL('/latency_icons/four_yellow.png', import.meta.url).href;
-            let latencyArr = [oneGreen, twoGreen, threeYellow, fourYellow];
-
-            let username = prompt("Set your battle.net name:");
-            if (username) {
-                socket.emit('set username', `${username}`);
-            } else if (!username) {
-                socket.emit('set username', `Protoss`);
+            function joinRoom(roomName, userName) {
+                currentRoom = roomName;
+                socket.emit('join room', roomName, userName);
+            }
+            function leaveRoom(roomName, userName) {
+                socket.emit('leave room', roomName, userName);
+                currentRoom = null;
             }
 
-            // const username = window.location.href;
-            // const username = "\<Protoss\>"
-            const form = document.querySelector('form');
+            document.addEventListener('DOMContentLoaded', () => {
+                const setUserName = setUserNamePrompt(socket);
+                username = setUserName;
+            });
+
+
+            const sendMessageForm = document.querySelector('form');
             const sendBtn = document.querySelector('button');
             const messages = document.getElementById('chatOutput');
             const input = document.getElementById('chatText');
-            const channelName = document.getElementById('channelName');
+            const channelNameDiv = document.getElementById('channelName');
 
-            form.addEventListener('submit', e => {
+            sendMessageForm.addEventListener('submit', e => {
                 e.preventDefault();
                 if (input.value) {
-                    socket.emit('chat message', { value: input.value });
-                    // socket.emit('chat message', { name: username, value: input.value });
-                    input.value = "";
+                    if (input.value.startsWith("/join") && input.value.split(" ").length === 2) {
+                        const newRoomName = input.value.split(" ")[1];
+                        // socket.emit('chat message', { name: username, value: input.value });
+                        input.value = "";
+                        leaveRoom(currentRoom, username);
+                        joinRoom(newRoomName, username);
+                    } else {
+                        socket.emit('chat message', { name: username, value: input.value });
+                        input.value = "";
+                    }
                 }
             });
+
             socket.on('chat message', (msg) => {
-                //console.log(msg);
-                // if (msg.username === username) {
+                // if (msg.username === username) { // set colors for different users
                 //     // set css for your name
                 // } else if (msg.username !== username) {
                 //     // set other persons
                 // }
+                createAppendMessage(msg, messages);
+            });
 
-                let userSpan = document.createElement('span');
-                    userSpan.className = "userColor";
-                    userSpan.innerText = `\<${msg.name}\>`;
-                let msgSpan = document.createElement('span');
-                    msgSpan.className = "msgColor";
-                    msgSpan.innerText = msg.value;
-                let li = document.createElement('li');
-                // li.innerText = msg;
-                // li.innerText = `${msg.name}: ${msg.value}`;
-                li.appendChild(userSpan);
-                li.appendChild(msgSpan);
-                messages.appendChild(li);
-                document.getElementById("chatOutputContainer").scrollTo(0, document.body.scrollHeight)
+            socket.on('joining channel message', (msg) => {
+                joiningChannelMessage(msg, messages, channelNameDiv);
             });
-            let myCurrentChannel;
-            socket.on('joining channel', (msg) => {
-                //console.log(msg);
-                channelName.innerText = msg;
-                let li = document.createElement('li');
-                    li.className = "joinChannelColor";
-                    li.innerText = `Joining Channel: ${msg}`;
-                    myCurrentChannel = msg;
-                messages.appendChild(li);
-            });
-            socket.on('set username', (name) => {
-                // console.log(name);
-                // let li = document.createElement('li');
-                //     // li.innerText = name.slice(1, name.length-1);
-                //     li.innerText = name;
-                // document.getElementById('channelUserName').appendChild(li);
-            });
+
             socket.on('get all users', (arr) => {
                 // console.log(arr);
                 // const usersInChannel = arr.filter((user) => user.inChannel === myCurrentChannel)
-                arr.forEach((user) => {
-                    console.log('user.inChannel \t', user.inChannel);
-                    // console.log('user.currentChannel \t', user);
-                    let channelUserList = document.getElementById('channelUserName');
-                    let li = document.createElement('li');
-
-                        li.className = "channelLI";
-                    let iconImg = document.createElement('img');
-                        iconImg.className = "iconImg"
-                        iconImg.style.paddingRight = "2px";
-                        iconImg.style.height = "14px";
-                        iconImg.style.width = "28px";
-                        // iconImg.height = 6;
-                        // iconImg.width = 32;
-                        iconImg.src = iconsArr[Math.floor(Math.random() * iconsArr.length)];
-                    let latencyImg = document.createElement('img');
-                        latencyImg.src = latencyArr[Math.floor(Math.random() * latencyArr.length)];
-                        latencyImg.className = "latencyImg";
-                        latencyImg.style.height = "14px";
-                        // latencyImg.width = 24;
-                    li.innerText = user.username;
-                    li.prepend(iconImg);
-                    li.appendChild(latencyImg);
-
-                    if (li.querySelector('img').src.includes('/channel_icons/gavel.jpg')) {
-                        channelUserList.insertBefore(li, channelUserList.firstChild)
-                    } else {
-                        channelUserList.appendChild(li);
-                    }
-                });
+                appendUsersToChannel(arr, iconsArr, latencyArr);
+            });
+            socket.on("user list", (users) => {
+                console.log('users from "user list"\t', users);
+                appendUsersToChannel(users, iconsArr, latencyArr);
             });
         </script>
     </body>
