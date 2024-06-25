@@ -73,7 +73,8 @@
             import joiningChannelMessage from './index_utils/joiningChannelMessage.js';
             import appendUsersToChannel from './index_utils/appendUsersToChannel.js';
 
-            const socket = io("http://localhost:9999/");
+            // const socket = io("http://localhost:9999/"); //dev
+            const socket = io("https://battlenet.es9.app"); // prod
             let currentRoom = null;
             let username = null;
 
