@@ -136,6 +136,10 @@
                 console.log('users from "user list"\t', users);
                 appendUsersToChannel(users, iconsArr, latencyArr);
             });
+            // socket.on('disconnect', () => { // test this 06 23 2024 - tested but works so far without it, also when u disc, there is no prompt 06 25 2024
+            //     const setUserName = setUserNamePrompt(socket);
+            //     username = setUserName;
+            // });
         </script>
     </body>
 </html>

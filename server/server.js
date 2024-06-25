@@ -36,10 +36,13 @@ io.on('connection', (socket) => {
     let channelName = 'Brood War USA-1';
     console.log("a user connected...");
 
-
-
     socket.on('set username', (name) => {
-        username = name;
+
+        if (allUsers.filter(user => user.username === name).length) {
+            username = name + Math.ceil(Math.random() * 1e4)
+        } else {
+            username = name;
+        }
         allUsers.push({ username, inChannel: channelName });
 
         if (!usersInRooms[channelName]) {
@@ -95,10 +98,18 @@ io.on('connection', (socket) => {
     });
     socket.on('disconnect', () => {
         console.log("a user disconnected...");
+
         for (let roomName in usersInRooms) {
-            usersInRooms[roomName] = usersInRooms[roomName].filter(user => user !== socket.id);
+            usersInRooms[roomName] = usersInRooms[roomName].filter(user => user !== username); // new
+            // usersInRooms[roomName] = usersInRooms[roomName].filter(user => user !== socket.id); // original 06 23 2024
+            console.log('usersInRooms\t', usersInRooms)
+            console.log('usersInRooms[roomName]\t', usersInRooms[roomName])
             io.to(roomName).emit('user list', usersInRooms[roomName]);
         }
+        const usersLeftOnline = Object.values(usersInRooms).flat();
+        // allUsers = allUsers.filter((user) => !usersLeftOnline.includes(user.username))
+        allUsers = allUsers.filter((user) => usersLeftOnline.includes(user.username));
+        // console.log('test1\t', test1);
     });
 
 });
