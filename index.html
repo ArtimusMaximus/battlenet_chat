@@ -73,8 +73,8 @@
             import joiningChannelMessage from './index_utils/joiningChannelMessage.js';
             import appendUsersToChannel from './index_utils/appendUsersToChannel.js';
 
-            // const socket = io("http://localhost:9999/"); //dev
-            const socket = io("https://battlenet.es9.app"); // prod
+            const socket = io("http://localhost:9999/", { pingInterval: 10000, pingTimeout: 5000 }); //dev
+            // const socket = io("https://battlenet.es9.app"); // prod
             let currentRoom = null;
             let username = null;
 
@@ -137,10 +137,10 @@
                 console.log('users from "user list"\t', users);
                 appendUsersToChannel(users, iconsArr, latencyArr);
             });
-            // socket.on('disconnect', () => { // test this 06 23 2024 - tested but works so far without it, also when u disc, there is no prompt 06 25 2024
-            //     const setUserName = setUserNamePrompt(socket);
-            //     username = setUserName;
-            // });
+            socket.on('disconnect', () => { // test this 06 23 2024 - tested but works so far without it, also when u disc, there is no prompt 06 25 2024
+                const setUserName = setUserNamePrompt(socket);
+                username = setUserName;
+            });
         </script>
     </body>
 </html>
