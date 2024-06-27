@@ -7,8 +7,8 @@ const cors = require('cors');
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-    pingInterval: 10000,
-    pingTimeout: 5000,
+    // pingInterval: 10000,
+    // pingTimeout: 5000,
     cors: {
         origin: 'https://battlenet.es9.app',
         methods: ['GET', 'POST'],
