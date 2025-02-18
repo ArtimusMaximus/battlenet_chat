@@ -1,0 +1,23 @@
+name: Stop, Build & Run updated container
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  stop_build_run:
+    runs-on: self-hosted
+    env:
+      IMAGE_NAME: battlechat
+      PORT: 9999
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Shut down current container
+        run: |
+          docker ps -q --filter "ancestor=artimusmaximus/${{env.IMAGE_NAME}}:latest" | xargs -r docker stop
+          echo "Shutting down container ${{env.IMAGE_NAME}}"
+      - name: pull updated container
+        run: docker pull artimusmaximus/${{env.IMAGE_NAME}}:latest
+      - name: Start new container
+        run: docker run -d -p ${{env.PORT}}:${{env.PORT}} artimusmaximus/${{env.IMAGE_NAME}}:latest
